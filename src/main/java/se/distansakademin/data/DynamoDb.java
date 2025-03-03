@@ -1,23 +1,21 @@
 package se.distansakademin.data;
 
 import se.distansakademin.models.CourseInfo;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
 public class DynamoDb {
 
     private final static String TABLE_NAME = "CourseInfo";
     private final static String KEY_ATTRIBUTE_NAME = "CourseInfoID";
 
-    private DynamoDbClient dynamoDbClient = null;
+    private static DynamoDbClient dynamoDbClient = null;
 
     public DynamoDb() {
-        this.dynamoDbClient = getConnection();
-
         try {
             createTable();
         } catch (ResourceInUseException e) {
@@ -25,11 +23,17 @@ public class DynamoDb {
         }
     }
 
-    private DynamoDbClient getConnection() {
-        return DynamoDbClient.builder()
-                .region(Region.EU_NORTH_1)
-                .build();
+
+    private static DynamoDbClient getClient() {
+        if (dynamoDbClient == null) {
+            dynamoDbClient = DynamoDbClient.builder()
+                    .region(Region.EU_NORTH_1)
+                    .build();
+        }
+
+        return dynamoDbClient;
     }
+
 
     private void createTable() {
         CreateTableRequest request = CreateTableRequest.builder()
@@ -54,17 +58,21 @@ public class DynamoDb {
                 .tableName(TABLE_NAME)
                 .build();
 
-        dynamoDbClient.createTable(request);
+        getClient().createTable(request);
 
         System.out.println("Created table: " + TABLE_NAME);
     }
 
 
+    /**
+     * Saves a CourseInfo object to DynamoDB
+     * @param courseInfo The information to be saved
+     * @return True if save successful
+     */
+    public boolean save(CourseInfo courseInfo) {
 
-    public void saveCourseInfo(CourseInfo courseInfo) {
         HashMap<String, AttributeValue> courseInfoMap = new HashMap<>();
 
-        // Universally Unique IDentifier
         var uuid = UUID.randomUUID().toString();
 
         courseInfoMap.put(KEY_ATTRIBUTE_NAME, AttributeValue.builder().s(uuid).build());
@@ -80,6 +88,67 @@ public class DynamoDb {
                 .item(courseInfoMap)
                 .build();
 
-        dynamoDbClient.putItem(request);
+        try{
+            dynamoDbClient.putItem(request);
+        } catch (AwsServiceException e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
     }
+
+
+
+    public List<CourseInfo> findAll() {
+
+        ScanRequest scanRequest = ScanRequest.builder()
+                .tableName(TABLE_NAME)
+                .build();
+
+        ScanResponse response = getClient().scan(scanRequest);
+
+        List<CourseInfo> courseInfoList = new ArrayList<>();
+
+        for (Map<String, AttributeValue> item : response.items()) {
+
+            CourseInfo courseInfo = new CourseInfo();
+
+            String courseInfoId = item.get(KEY_ATTRIBUTE_NAME).s();
+            courseInfo.setCourseInfoId(courseInfoId);
+
+            int courseId = Integer.parseInt(item.get("CourseID").s());
+            courseInfo.setCourseId(courseId);
+
+            String courseName = item.get("CourseName").s();
+            courseInfo.setCourseName(courseName);
+
+            String universityName = item.get("UniversityName").s();
+            courseInfo.setUniversityName(universityName);
+
+            String teacherName = item.get("TeacherName").s();
+            courseInfo.setTeacherName(teacherName);
+
+            courseInfoList.add(courseInfo);
+        }
+
+        return courseInfoList;
+    }
+
+
+    public void emptyTable() {
+        List<CourseInfo> courseInfoList = findAll();
+        courseInfoList.forEach(courseInfo -> delete(courseInfo.getCourseInfoId()));
+    }
+
+
+    public void delete(String key){
+        DeleteItemRequest request = DeleteItemRequest.builder()
+                .tableName(TABLE_NAME)
+                .key(Map.of(KEY_ATTRIBUTE_NAME, AttributeValue.fromS(key)))
+                .build();
+
+        getClient().deleteItem(request);
+    }
+
 }

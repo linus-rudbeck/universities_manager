@@ -2,6 +2,7 @@ package se.distansakademin.models;
 
 public class CourseInfo {
 
+    String courseInfoId;
     int courseId;
     String courseName;
     String universityName;
@@ -9,10 +10,13 @@ public class CourseInfo {
 
     public CourseInfo() { }
 
-    public CourseInfo(String courseName, String universityName, String teacherName) {
-        this.courseName = courseName;
-        this.universityName = universityName;
-        this.teacherName = teacherName;
+
+    public String getCourseInfoId() {
+        return courseInfoId;
+    }
+
+    public void setCourseInfoId(String courseInfoId) {
+        this.courseInfoId = courseInfoId;
     }
 
     public int getCourseId() {
