@@ -2,10 +2,10 @@ package se.distansakademin.models;
 
 public class Teacher {
 
-    int teacherId;
-    String teacherName;
-    String phoneNumber;
-    String email;
+    private int teacherId;
+    private String teacherName;
+    private String phoneNumber;
+    private String email;
 
     public Teacher() { }
 

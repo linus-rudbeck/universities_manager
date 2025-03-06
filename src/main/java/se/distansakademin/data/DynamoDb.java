@@ -15,6 +15,8 @@ public class DynamoDb {
 
     private static DynamoDbClient dynamoDbClient = null;
 
+
+
     public DynamoDb() {
         try {
             createTable();

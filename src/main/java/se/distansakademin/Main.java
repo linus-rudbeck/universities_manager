@@ -7,6 +7,7 @@ import se.distansakademin.data.mysql.UniversityDb;
 import se.distansakademin.models.CourseInfo;
 import se.distansakademin.models.Teacher;
 import se.distansakademin.models.University;
+import se.distansakademin.services.TeacherService;
 
 import java.sql.*;
 import java.util.List;
@@ -16,11 +17,22 @@ public class Main {
 
 
     public static void main(String[] args) throws SQLException {
+
+        boolean keepRunning;
+
+        do{
+            keepRunning = mainMenu();
+        }while(keepRunning);
+
+    }
+
+    private static boolean mainMenu() throws SQLException {
         Scanner scanner = new Scanner(System.in);
 
         System.out.print("""
                 =================================
                 - - -     Menu              - - -
+                - - -  0. Exit              - - -
                 - - -  1. Show teachers     - - -
                 - - -  2. Show universities - - -
                 - - -  3. Show cache        - - -
@@ -31,6 +43,8 @@ public class Main {
         int choice = scanner.nextInt();
 
         switch (choice){
+            case 0:
+                return false;
             case 1:
                 showTeachers();
                 break;
@@ -44,10 +58,13 @@ public class Main {
                 loadCourseInfoToDynamoDb();
                 break;
         }
+
+        return true;
     }
 
     private static void showTeachers() throws SQLException {
-        List<Teacher> teachers = TeacherDb.findAll();
+        TeacherService teacherService = new TeacherService();
+        List<Teacher> teachers = teacherService.getTeachers();
         teachers.forEach(System.out::println);
     }
 
