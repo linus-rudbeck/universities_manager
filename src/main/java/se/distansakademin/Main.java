@@ -19,13 +19,13 @@ public class Main {
         Scanner scanner = new Scanner(System.in);
 
         System.out.print("""
-                ============================
-                ---    Menu              ---
-                --- 1. Show teachers     ---
-                --- 2. Show universities ---
-                --- 3. Show cache        ---
-                --- 4. Reload cache      ---
-                ============================
+                =================================
+                - - -     Menu              - - -
+                - - -  1. Show teachers     - - -
+                - - -  2. Show universities - - -
+                - - -  3. Show cache        - - -
+                - - -  4. Reload cache      - - -
+                =================================
                 Input:""");
 
         int choice = scanner.nextInt();
